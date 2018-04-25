@@ -9,13 +9,12 @@ import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 
 public class MainActivity extends Activity {
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
-
     private CardView cvFototag;
-    private CardView cvGaleria;
+    private CardView cvGallery;
     private CardView cvCamera;
     private ImageView mImageView;
 
@@ -25,10 +24,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         cvFototag = (CardView) findViewById(R.id.cv_fototag);
-        cvGaleria = (CardView) findViewById(R.id.cv_galeria);
+        cvGallery = (CardView) findViewById(R.id.cv_gallery);
         cvCamera = (CardView) findViewById(R.id.cv_camera);
-        mImageView = (ImageView) findViewById(R.id.imageViewTeste);
-
 
         cvFototag.setOnClickListener(new Button.OnClickListener(){
             @Override
@@ -37,33 +34,27 @@ public class MainActivity extends Activity {
             }
         });
 
-        cvGaleria.setOnClickListener(new Button.OnClickListener(){
+        cvGallery.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
-
+                //call imageEditActivity with gallery argument
+                Intent imageEditIntent = new Intent(v.getContext(), ImageEditActivity.class);
+                imageEditIntent.putExtra(Constant.IMAGE_FROM, Constant.IMAGE_FROM_GALLERY);
+                startActivity(imageEditIntent);
             }
         });
 
         cvCamera.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                }
+                //call imageEditActivity with camera argument
+                Intent imageEditIntent = new Intent(v.getContext(), ImageEditActivity.class);
+                imageEditIntent.putExtra(Constant.IMAGE_FROM, Constant.IMAGE_FROM_CAMERA);
+                startActivity(imageEditIntent);
+
             }
         });
 
 
     }
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mImageView.setImageBitmap(imageBitmap);
-        }
-    }
-
-
 }

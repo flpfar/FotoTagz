@@ -35,7 +35,7 @@
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/cv_galeria"
+        android:id="@+id/cv_gallery"
         android:layout_width="0dp"
         android:layout_height="180dp"
         android:layout_gravity="center"
@@ -48,15 +48,15 @@
         card_view:layout_constraintTop_toBottomOf="@+id/cv_fototag">
 
         <ImageView
-            android:id="@+id/iv_cv_galeria"
+            android:id="@+id/iv_cv_gallery"
             android:layout_width="120dp"
             android:layout_height="120dp"
             android:layout_gravity="center"
             android:src="@android:drawable/ic_menu_gallery" />
 
         <TextView
-            android:id="@+id/tv_cv_galeria"
-            android:text="@string/galeria"
+            android:id="@+id/tv_cv_gallery"
+            android:text="@string/gallery"
             android:padding="8dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
@@ -72,7 +72,7 @@
         android:layout_marginTop="8dp"
         card_view:cardCornerRadius="4dp"
         card_view:layout_constraintEnd_toEndOf="parent"
-        card_view:layout_constraintStart_toEndOf="@+id/cv_galeria"
+        card_view:layout_constraintStart_toEndOf="@+id/cv_gallery"
         card_view:layout_constraintTop_toBottomOf="@+id/cv_fototag">
 
         <ImageView
@@ -89,16 +89,5 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </android.support.v7.widget.CardView>
-
-    <ImageView
-        android:id="@+id/imageViewTeste"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="176dp"
-        android:src="@color/cardview_dark_background"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cv_galeria" />
 
 </android.support.constraint.ConstraintLayout>

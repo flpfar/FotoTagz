@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">FotoTagz</string>
-    <string name="galeria">Galeria</string>
+    <string name="gallery">Galeria</string>
     <string name="camera">Câmera</string>
     <string name="tagged">Biblioteca FotoTagz</string>
+    <string name="image_description">Image chosen by the user</string>
 </resources>
