@@ -1,19 +1,24 @@
 package br.edu.ifspsaocarlos.sdm.fototagz;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 import com.bumptech.glide.Glide;
-
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 
@@ -61,10 +66,58 @@ public class ImageEditActivity extends Activity {
         if(resultCode == Activity.RESULT_OK) {
             if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
                 final Uri imageUri = data.getData();
-                Glide
-                        .with(ImageEditActivity.this)
+
+                DisplayMetrics displaymetrics = new DisplayMetrics();
+                ImageEditActivity.this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+                final int screenWidth = displaymetrics.widthPixels;
+                final int screenHeight = displaymetrics.heightPixels;
+
+                //set image using glide library, creates a bitmap to draw the dots on screen;
+                Glide.with(ImageEditActivity.this)
+                        .asBitmap()
                         .load(imageUri)
-                        .into(ivImage);
+                        .into(new SimpleTarget<Bitmap>(screenWidth, screenWidth) { //two width arguments bc it makes a square
+                            @Override
+                            public void onResourceReady(final Bitmap bitmap,
+                                                        Transition<? super Bitmap> transition) {
+                                ivImage.setImageBitmap(bitmap);
+
+                                final Canvas canvas = new Canvas(bitmap);
+                                final Paint paint = new Paint();
+
+                                //when user touches the image, creates a dot where was touched
+                                ivImage.setOnTouchListener(new View.OnTouchListener()
+                                {
+                                    @Override
+                                    public boolean onTouch(View v, MotionEvent event)
+                                    {
+                                        //create the dot
+                                        paint.setColor(Color.RED);
+                                        canvas.drawCircle(event.getX(), event.getY(), 15, paint);
+                                        paint.setColor(Color.YELLOW);
+                                        canvas.drawCircle(event.getX(), event.getY(), 10, paint);
+
+                                        //refresh the image, inserting the dot
+                                        ivImage.setImageBitmap(bitmap);
+
+                                        //shows confirmation display
+                                        new AlertDialog.Builder(ImageEditActivity.this)
+                                                .setTitle("Title")
+                                                .setMessage(getResources().getString(R.string.tag_confirmation))
+                                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                                        //intent to open activity to set information to the point tagged
+                                                    }})
+                                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                                                    }});
+                                        return false;
+                                    }
+                                });
+                            }
+                        });
             }
         } else{
             //closes activity
