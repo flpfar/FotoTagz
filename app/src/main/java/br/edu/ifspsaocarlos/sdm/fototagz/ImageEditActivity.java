@@ -91,14 +91,9 @@ public class ImageEditActivity extends Activity {
                                     @Override
                                     public boolean onTouch(View v, MotionEvent event)
                                     {
-                                        //create the dot
-                                        paint.setColor(Color.RED);
-                                        canvas.drawCircle(event.getX(), event.getY(), 15, paint);
-                                        paint.setColor(Color.YELLOW);
-                                        canvas.drawCircle(event.getX(), event.getY(), 10, paint);
-
-                                        //refresh the image, inserting the dot
-                                        ivImage.setImageBitmap(bitmap);
+                                        //dot coordinates
+                                        final float dotX = event.getX();
+                                        final float dotY = event.getY();
 
                                         //shows confirmation display
                                         new AlertDialog.Builder(ImageEditActivity.this)
@@ -108,11 +103,20 @@ public class ImageEditActivity extends Activity {
                                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                                     public void onClick(DialogInterface dialog, int whichButton) {
                                                         //intent to open activity to set information to the point tagged
+
+                                                        //create the dot
+                                                        paint.setColor(Color.RED);
+                                                        canvas.drawCircle(dotX, dotY, 15, paint);
+                                                        paint.setColor(Color.YELLOW);
+                                                        canvas.drawCircle(dotX, dotY, 10, paint);
+
+                                                        //refresh the image, inserting the dot
+                                                        ivImage.setImageBitmap(bitmap);
                                                     }})
                                                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                                     public void onClick(DialogInterface dialog, int whichButton) {
 
-                                                    }});
+                                                    }}).show();
                                         return false;
                                     }
                                 });
