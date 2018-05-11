@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 //call imageEditActivity with gallery argument
                 Intent imageEditIntent = new Intent(v.getContext(), ImageEditActivity.class);
-                imageEditIntent.putExtra(Constant.IMAGE_FROM, Constant.IMAGE_FROM_GALLERY);
+                imageEditIntent.putExtra(Constant.CAME_FROM, Constant.IMAGE_FROM_GALLERY);
                 startActivity(imageEditIntent);
             }
         });
@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
             public void onClick(View v) {
                 //call imageEditActivity with camera argument
                 Intent imageEditIntent = new Intent(v.getContext(), ImageEditActivity.class);
-                imageEditIntent.putExtra(Constant.IMAGE_FROM, Constant.IMAGE_FROM_CAMERA);
+                imageEditIntent.putExtra(Constant.CAME_FROM, Constant.IMAGE_FROM_CAMERA);
                 startActivity(imageEditIntent);
 
             }

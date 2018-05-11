@@ -16,11 +16,13 @@ import android.content.Intent;
 import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -45,8 +47,8 @@ public class ImageEditActivity extends Activity {
         ivImage = (ImageView) findViewById(R.id.iv_image);
         rl = (RelativeLayout) findViewById(R.id.rl_imagetag);
 
-        if(getIntent().hasExtra(Constant.IMAGE_FROM)){
-            int imageFrom = getIntent().getIntExtra(Constant.IMAGE_FROM, 0);
+        if(getIntent().hasExtra(Constant.CAME_FROM)){
+            int imageFrom = getIntent().getIntExtra(Constant.CAME_FROM, 0);
 
             switch (imageFrom){
                 case Constant.IMAGE_FROM_CAMERA:
@@ -77,115 +79,72 @@ public class ImageEditActivity extends Activity {
             if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
                 final Uri imageUri = data.getData();
 
-                DisplayMetrics displaymetrics = new DisplayMetrics();
-                ImageEditActivity.this.getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-                final int screenWidth = displaymetrics.widthPixels;
-                final int screenHeight = displaymetrics.heightPixels;
-
-                //set image using glide library, creates a bitmap to draw the dots on screen;
+                //show chosen image using glide library
                 Glide.with(ImageEditActivity.this)
                         .asBitmap()
                         .load(imageUri)
                         .into(ivImage);
 
-                //when user clicks somewhere in imageview, creates a dot where was touched.
+                //when user clicks somewhere in imageview, creates a new tag where was touched.
                 ivImage.setOnTouchListener(new View.OnTouchListener() {
                     @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        Toast.makeText(ImageEditActivity.this, "W: "+ivImage.getWidth()+" H: "+ivImage.getHeight()+" SW: "+ screenWidth+" SH: "+ screenHeight, Toast.LENGTH_SHORT).show();
-
-                        int x = (int) event.getX();
-                        int y = (int) event.getY();
-
-                        ImageView iv = new ImageView(v.getContext());
-                        iv.setImageResource(R.drawable.ic_adjust_black_24dp);
-                        iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(40,40));
-                        iv.setMaxHeight(40);
-                        iv.setMaxWidth(40);
-                        iv.setX(x-20);
-                        iv.setY(y-20);
-                        final int tagId = View.generateViewId();
-                        iv.setId(tagId);
-                        rl.addView(iv);
-
-
-                        //shows confirmation display
-                        new AlertDialog
-                                .Builder(ImageEditActivity.this)
-                                .setTitle("Title")
-                                .setMessage(getResources().getString(R.string.tag_confirmation))
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int whichButton) {
-                                        //intent to open activity to set information to the point tagged
-
-                                    }})
-                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int whichButton) {
-                                        //removes tag imageview from image
-                                        ImageView namebar = (ImageView) findViewById(tagId);
-                                        ((ViewGroup) namebar.getParent()).removeView(namebar);
-
-                                    }}).show();
-
+                    public boolean onTouch(final View v, MotionEvent event) {
+                        createNewImageTag(v, (int)event.getX(), (int)event.getY());
                         return false;
                     }
                 });
-                                          //                                {
-//                                    @Override
-//                                    public boolean onTouch(View v, MotionEvent event)
-//                                    {
+            } else if(requestCode == Constant.NEW_TAG){
+                //response came from NewTagActivity
 
-//                                new SimpleTarget<Bitmap>(screenWidth, screenWidth) { //two width arguments bc it makes a square
-//                            @Override
-//                            public void onResourceReady(final Bitmap bitmap,
-//                                                        Transition<? super Bitmap> transition) {
-//                                ivImage.setImageBitmap(bitmap);
-//
-//                                final Canvas canvas = new Canvas(bitmap);
-//                                final Paint paint = new Paint();
-//
-//                                //when user touches the image, creates a dot where was touched
-//                                ivImage.setOnTouchListener(new View.OnTouchListener()
-//                                {
-//                                    @Override
-//                                    public boolean onTouch(View v, MotionEvent event)
-//                                    {
-//                                        //dot coordinates
-//                                        final float dotX = event.getX();
-//                                        final float dotY = event.getY();
-//
-//                                        //shows confirmation display
-//                                        new AlertDialog.Builder(ImageEditActivity.this)
-//                                                .setTitle("Title")
-//                                                .setMessage(getResources().getString(R.string.tag_confirmation))
-//                                                .setIcon(android.R.drawable.ic_dialog_alert)
-//                                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-//                                                    public void onClick(DialogInterface dialog, int whichButton) {
-//                                                        //intent to open activity to set information to the point tagged
-//
-//                                                        //create the dot
-//                                                        paint.setColor(Color.RED);
-//                                                        canvas.drawCircle(dotX, dotY, 15, paint);
-//                                                        paint.setColor(Color.YELLOW);
-//                                                        canvas.drawCircle(dotX, dotY, 10, paint);
-//
-//                                                        //refresh the image, inserting the dot
-//                                                        ivImage.setImageBitmap(bitmap);
-//                                                    }})
-//                                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-//                                                    public void onClick(DialogInterface dialog, int whichButton) {
-//
-//                                                    }}).show();
-//                                        return false;
-//                                    }
-//                                });
-//                            }
-//                        });
-            }else {
+            } else {
                 //closes activity
                 finish();
             }
         }
+    }
+
+    //creates a new "tag" imageview and show it
+    private void createNewImageTag(View v, int x, int y){
+        ImageView iv = new ImageView(v.getContext());
+        iv.setImageResource(R.drawable.ic_adjust_black_24dp);
+        iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(40,40));
+        iv.setMaxHeight(40);
+        iv.setMaxWidth(40);
+        iv.setX(x-20);
+        iv.setY(y-20);
+        final int a = View.generateViewId();
+        iv.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Toast.makeText(v.getContext(), "TESTE"+a, Toast.LENGTH_SHORT).show();
+            }
+        });
+        rl.addView(iv);
+        showConfirmation(iv);
+    }
+
+    private void showConfirmation(final ImageView iv){
+        new AlertDialog
+                .Builder(ImageEditActivity.this)
+                .setTitle("Title")
+                .setMessage(getResources().getString(R.string.tag_confirmation))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+
+                //user chooses 'yes', must show an activity to put details about the point touched
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        //intent to open activity to set information to the point tagged
+                        Intent newTagActivity = new Intent(getBaseContext(), NewTagActivity.class);
+                        startActivityForResult(newTagActivity, Constant.NEW_TAG);
+                    }})
+
+                //user chooses 'no'
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        //removes tag imageview from image
+//                        ImageView namebar = (ImageView) findViewById(tagId);
+                        ((ViewGroup) iv.getParent()).removeView(iv);
+
+                    }}).show();
     }
 }

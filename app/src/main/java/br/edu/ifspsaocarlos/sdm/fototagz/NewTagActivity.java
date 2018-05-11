@@ -1,9 +1,9 @@
 package br.edu.ifspsaocarlos.sdm.fototagz;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
 import android.os.Bundle;
 
-public class NewTagActivity extends AppCompatActivity {
+public class NewTagActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
