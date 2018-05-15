@@ -13,12 +13,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,13 +26,15 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 
+import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 
 public class ImageEditActivity extends Activity {
 
     static final int CAMERA_REQUEST = 1;
     static final int GALLERY_REQUEST = 2;
-    private int tagId = 0;
+
+    static final int TAG_IMAGE_SIZE = 20;
 
     private ImageView ivImage;
     private RelativeLayout rl;
@@ -75,31 +74,53 @@ public class ImageEditActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(resultCode == Activity.RESULT_OK) {
-            if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
-                final Uri imageUri = data.getData();
+        switch (resultCode){
+            case RESULT_OK:
+                if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
+                    final Uri imageUri = data.getData();
 
-                //show chosen image using glide library
-                Glide.with(ImageEditActivity.this)
-                        .asBitmap()
-                        .load(imageUri)
-                        .into(ivImage);
+                    //TODO: search the URI in bd to see if its not an already tagged image
 
-                //when user clicks somewhere in imageview, creates a new tag where was touched.
-                ivImage.setOnTouchListener(new View.OnTouchListener() {
-                    @Override
-                    public boolean onTouch(final View v, MotionEvent event) {
-                        createNewImageTag(v, (int)event.getX(), (int)event.getY());
-                        return false;
+                    //TODO: if its not an already tagged image, create a new TaggedImage and set the URI
+
+                    try {
+                        //show chosen image using glide library
+                        Glide.with(ImageEditActivity.this)
+                                .asBitmap()
+                                .load(imageUri)
+                                .into(ivImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                });
-            } else if(requestCode == Constant.NEW_TAG){
-                //response came from NewTagActivity
 
-            } else {
-                //closes activity
-                finish();
-            }
+                    //when user clicks somewhere in imageview, creates a new tag where was touched.
+                    ivImage.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(final View v, MotionEvent event) {
+                            createNewImageTag(v, (int)event.getX(), (int)event.getY());
+                            return false;
+                        }
+                    });
+                } else if(requestCode == Constant.NEW_TAG){
+                    //response came from NewTagActivity with result ok (Save button was clicked in NewTagActivity)
+                    Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
+                    Toast.makeText(ImageEditActivity.this, ""+newTag.getId(), Toast.LENGTH_SHORT).show();
+                    //TODO: Insert created tag in TaggedImaged tags list
+
+                } else {
+                    //closes activity
+                    finish();
+                }
+                break;
+
+            case RESULT_CANCELED:
+                //result came from NewTagActivity -> user pressed "Cancel"
+                int id = data.getIntExtra(Constant.TAG_ID, 0);
+                ImageView ivTag = (ImageView) findViewById(id);
+                ((ViewGroup) ivTag.getParent()).removeView(ivTag);
+
+            default:
+                break;
         }
     }
 
@@ -107,22 +128,23 @@ public class ImageEditActivity extends Activity {
     private void createNewImageTag(View v, int x, int y){
         ImageView iv = new ImageView(v.getContext());
         iv.setImageResource(R.drawable.ic_adjust_black_24dp);
-        iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(40,40));
-        iv.setMaxHeight(40);
-        iv.setMaxWidth(40);
-        iv.setX(x-20);
-        iv.setY(y-20);
-        final int a = View.generateViewId();
+        iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(TAG_IMAGE_SIZE * 2,TAG_IMAGE_SIZE * 2));
+        iv.setMaxHeight(TAG_IMAGE_SIZE * 2);
+        iv.setMaxWidth(TAG_IMAGE_SIZE * 2);
+        iv.setX(x-TAG_IMAGE_SIZE);
+        iv.setY(y-TAG_IMAGE_SIZE);
+        iv.setId(View.generateViewId());
         iv.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v){
-                Toast.makeText(v.getContext(), "TESTE"+a, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(v.getContext(), "TESTE"+tagId, Toast.LENGTH_SHORT).show();
             }
         });
         rl.addView(iv);
         showConfirmation(iv);
     }
 
+    //confirmation if user really wants to create a tag where he touched
     private void showConfirmation(final ImageView iv){
         new AlertDialog
                 .Builder(ImageEditActivity.this)
@@ -135,6 +157,9 @@ public class ImageEditActivity extends Activity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         //intent to open activity to set information to the point tagged
                         Intent newTagActivity = new Intent(getBaseContext(), NewTagActivity.class);
+                        newTagActivity.putExtra(Constant.COORDX, iv.getX() + TAG_IMAGE_SIZE);
+                        newTagActivity.putExtra(Constant.COORDY, iv.getY() + TAG_IMAGE_SIZE);
+                        newTagActivity.putExtra(Constant.TAG_ID, iv.getId());
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
                     }})
 

@@ -19,11 +19,7 @@ public class TaggedImage extends RealmObject {
         this.imageUri = imageUri;
     }
 
-    public RealmList<Tag> getTags() {
-        return tags;
-    }
-
-    public void setTags(RealmList<Tag> tags) {
-        this.tags = tags;
+    public void addTag(Tag newTag){
+        tags.add(newTag);
     }
 }

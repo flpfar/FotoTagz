@@ -5,4 +5,8 @@
     <string name="tagged">Biblioteca FotoTagz</string>
     <string name="image_description">Image chosen by the user</string>
     <string name="tag_confirmation">Tag where you touched?</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
 </resources>

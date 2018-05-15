@@ -1,16 +1,53 @@
 package br.edu.ifspsaocarlos.sdm.fototagz.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.LinkingObjects;
 
-public class Tag extends RealmObject{
+public class Tag extends RealmObject implements Parcelable{
     private String title;
     private String description;
-    private Point point;
+    private int x, y;
+
+    @Ignore
+    private int viewId;
 
     @LinkingObjects("tags")
     public final RealmResults<TaggedImage> taggedImage = null;
+
+    public Tag(){
+
+    }
+
+    public Tag(int x, int y, int id) {
+        this.x = x;
+        this.y = y;
+        this.viewId = id;
+    }
+
+    protected Tag(Parcel in) {
+        title = in.readString();
+        description = in.readString();
+        x = in.readInt();
+        y = in.readInt();
+        viewId = in.readInt();
+    }
+
+    public static final Creator<Tag> CREATOR = new Creator<Tag>() {
+        @Override
+        public Tag createFromParcel(Parcel in) {
+            return new Tag(in);
+        }
+
+        @Override
+        public Tag[] newArray(int size) {
+            return new Tag[size];
+        }
+    };
 
     public String getTitle() {
         return title;
@@ -28,11 +65,41 @@ public class Tag extends RealmObject{
         this.description = description;
     }
 
-    public Point getPoint() {
-        return point;
+    public int getX() {
+        return x;
     }
 
-    public void setPoint(Point point) {
-        this.point = point;
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getId() {
+        return viewId;
+    }
+
+    public void setId(int id) {
+        this.viewId = id;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(title);
+        parcel.writeString(description);
+        parcel.writeInt(x);
+        parcel.writeInt(y);
+        parcel.writeInt(viewId);
     }
 }
