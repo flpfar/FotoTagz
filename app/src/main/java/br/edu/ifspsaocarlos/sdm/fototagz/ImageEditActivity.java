@@ -53,6 +53,8 @@ public class ImageEditActivity extends Activity {
                 case Constant.IMAGE_FROM_CAMERA:
                     //intent to open camera to get the image
                     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                    //if that checks if there is some camera app in the device
                     if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
                         startActivityForResult(takePictureIntent, CAMERA_REQUEST);
                     }
@@ -114,12 +116,18 @@ public class ImageEditActivity extends Activity {
                 break;
 
             case RESULT_CANCELED:
-                //result came from NewTagActivity -> user pressed "Cancel"
-                int id = data.getIntExtra(Constant.TAG_ID, 0);
-                ImageView ivTag = (ImageView) findViewById(id);
-                ((ViewGroup) ivTag.getParent()).removeView(ivTag);
+                if(requestCode == Constant.NEW_TAG) {
+                    //result came from NewTagActivity -> user pressed "Cancel"
+                    int id = data.getIntExtra(Constant.TAG_ID, 0);
+                    ImageView ivTag = (ImageView) findViewById(id);
+                    ((ViewGroup) ivTag.getParent()).removeView(ivTag);
+                } else {
+                    finish();
+                }
+                break;
 
             default:
+                finish();
                 break;
         }
     }
