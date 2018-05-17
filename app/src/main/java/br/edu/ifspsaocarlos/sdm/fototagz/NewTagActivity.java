@@ -51,7 +51,7 @@ public class NewTagActivity extends Activity {
                 newTag.setTitle(etTitle.getText().toString());
                 newTag.setDescription(etDescription.getText().toString());
 
-                //save to  BD
+                //TODO: save to BD
 
                 //return to ImageEditActivity
                 Intent returnIntent = new Intent();

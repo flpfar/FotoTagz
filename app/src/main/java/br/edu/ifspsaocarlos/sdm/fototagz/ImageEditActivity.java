@@ -15,7 +15,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +27,14 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
@@ -38,6 +48,8 @@ public class ImageEditActivity extends Activity {
 
     private ImageView ivImage;
     private RelativeLayout rl;
+
+    private String mCurrentPhotoPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +68,23 @@ public class ImageEditActivity extends Activity {
 
                     //if that checks if there is some camera app in the device
                     if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        startActivityForResult(takePictureIntent, CAMERA_REQUEST);
+                        // create the File where the photo should go
+                        File photoFile = null;
+                        try {
+                            photoFile = createImageFile();
+                        } catch (IOException ex) {
+                            // error occurred while creating the File
+                            Toast.makeText(this, "Could not load photo", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                        // Continue only if the File was successfully created
+                        if (photoFile != null) {
+                            Uri photoURI = FileProvider.getUriForFile(this,
+                                    "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
+                                    photoFile);
+                            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                            startActivityForResult(takePictureIntent, CAMERA_REQUEST);
+                        }
                     }
                     break;
 
@@ -79,7 +107,15 @@ public class ImageEditActivity extends Activity {
         switch (resultCode){
             case RESULT_OK:
                 if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
-                    final Uri imageUri = data.getData();
+                    String imageUri = mCurrentPhotoPath;
+
+                    if(requestCode == GALLERY_REQUEST){
+                        //TODO: create a copy of the image to store in app's memory case its deleted from gallery
+                        if(data != null) {
+                            imageUri = data.getData().toString();
+                        }
+                    }
+
 
                     //TODO: search the URI in bd to see if its not an already tagged image
 
@@ -180,4 +216,41 @@ public class ImageEditActivity extends Activity {
 
                     }}).show();
     }
+
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+//    private void copyFile(File sourceFile, File destFile) throws IOException {
+//        if (!sourceFile.exists()) {
+//            return;
+//        }
+//
+//        FileChannel source = null;
+//        FileChannel destination = null;
+//        source = new FileInputStream(sourceFile).getChannel();
+//        destination = new FileOutputStream(destFile).getChannel();
+//        if (destination != null && source != null) {
+//            destination.transferFrom(source, 0, source.size());
+//        }
+//        if (source != null) {
+//            source.close();
+//        }
+//        if (destination != null) {
+//            destination.close();
+//        }
+//    }
 }
