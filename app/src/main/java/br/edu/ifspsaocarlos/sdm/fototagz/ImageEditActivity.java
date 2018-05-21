@@ -37,7 +37,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
+import br.edu.ifspsaocarlos.sdm.fototagz.model.TaggedImage;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
+import io.realm.Realm;
 
 public class ImageEditActivity extends Activity {
 
@@ -48,15 +50,22 @@ public class ImageEditActivity extends Activity {
 
     private ImageView ivImage;
     private RelativeLayout rl;
+    private TaggedImage taggedImage = null;
 
     private String mCurrentPhotoPath;
+    private String imageUri;
+
+    private Realm realm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_edit);
+
         ivImage = (ImageView) findViewById(R.id.iv_image);
         rl = (RelativeLayout) findViewById(R.id.rl_imagetag);
+
+        realm = Realm.getDefaultInstance();
 
         if(getIntent().hasExtra(Constant.CAME_FROM)){
             int imageFrom = getIntent().getIntExtra(Constant.CAME_FROM, 0);
@@ -106,8 +115,11 @@ public class ImageEditActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (resultCode){
             case RESULT_OK:
+
+                //*********RESPONSE FROM GALLERY OR CAMERA*********
                 if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
-                    String imageUri = mCurrentPhotoPath;
+
+                    imageUri = mCurrentPhotoPath;
 
                     if(requestCode == GALLERY_REQUEST){
                         //TODO: create a copy of the image to store in app's memory case its deleted from gallery
@@ -116,15 +128,12 @@ public class ImageEditActivity extends Activity {
                         }
                     }
 
-
-                    //TODO: search the URI in bd to see if its not an already tagged image
-
-                    //TODO: if its not an already tagged image, create a new TaggedImage and set the URI
+                    //creates the taggedImage object
+                    taggedImage = new TaggedImage(imageUri);
 
                     try {
                         //show chosen image using glide library
                         Glide.with(ImageEditActivity.this)
-                                .asBitmap()
                                 .load(imageUri)
                                 .into(ivImage);
                     } catch (Exception e) {
@@ -139,11 +148,15 @@ public class ImageEditActivity extends Activity {
                             return false;
                         }
                     });
+
+                //************* RESPONSE FROM NEWTAGACTIVITY *******************
                 } else if(requestCode == Constant.NEW_TAG){
-                    //response came from NewTagActivity with result ok (Save button was clicked in NewTagActivity)
+                    //response came from NewTagActivity
                     Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
-                    Toast.makeText(ImageEditActivity.this, ""+newTag.getId(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, newTag.getTitle(), Toast.LENGTH_SHORT).show();
+
                     //TODO: Insert created tag in TaggedImaged tags list
+                    taggedImage.addTag(newTag);
 
                 } else {
                     //closes activity
@@ -202,7 +215,7 @@ public class ImageEditActivity extends Activity {
                         //intent to open activity to set information to the point tagged
                         Intent newTagActivity = new Intent(getBaseContext(), NewTagActivity.class);
                         newTagActivity.putExtra(Constant.COORDX, iv.getX() + TAG_IMAGE_SIZE);
-                        newTagActivity.putExtra(Constant.COORDY, iv.getY() + TAG_IMAGE_SIZE);
+                        newTagActivity.putExtra(Constant.COORDY, iv.getY()+TAG_IMAGE_SIZE);
                         newTagActivity.putExtra(Constant.TAG_ID, iv.getId());
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
                     }})
@@ -234,7 +247,13 @@ public class ImageEditActivity extends Activity {
         return image;
     }
 
-//    private void copyFile(File sourceFile, File destFile) throws IOException {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
+    }
+
+    //    private void copyFile(File sourceFile, File destFile) throws IOException {
 //        if (!sourceFile.exists()) {
 //            return;
 //        }
