@@ -16,9 +16,6 @@ public class Tag extends RealmObject implements Parcelable{
     @Ignore
     private int viewId;
 
-    @LinkingObjects("tags")
-    public final RealmResults<TaggedImage> taggedImage = null;
-
     public Tag(){
 
     }

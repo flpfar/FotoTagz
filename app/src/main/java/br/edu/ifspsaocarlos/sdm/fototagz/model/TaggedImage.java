@@ -3,10 +3,12 @@ package br.edu.ifspsaocarlos.sdm.fototagz.model;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
 
 public class TaggedImage extends RealmObject {
 
     @PrimaryKey
+    @Required
     private String imageUri;
 
     private RealmList<Tag> tags;
@@ -29,5 +31,9 @@ public class TaggedImage extends RealmObject {
 
     public void addTag(Tag newTag){
         tags.add(newTag);
+    }
+
+    public RealmList<Tag> getTags() {
+        return tags;
     }
 }
