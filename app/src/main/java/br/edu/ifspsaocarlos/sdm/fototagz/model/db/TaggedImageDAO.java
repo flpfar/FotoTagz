@@ -39,7 +39,7 @@ public class TaggedImageDAO {
         return mRealm.where(TaggedImage.class).findAll();
     }
 
-    public RealmObject loadTaggedImageById(String imageUri) {
+    public TaggedImage loadTaggedImageById(String imageUri) {
         return mRealm.where(TaggedImage.class).equalTo("imageUri", imageUri).findFirst();
     }
 

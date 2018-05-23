@@ -7,6 +7,7 @@ import java.util.List;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.TaggedImage;
 import io.realm.Realm;
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
 
@@ -22,23 +23,28 @@ public class TagDAO {
             @Override
             public void execute(Realm realm) {
                 TaggedImage taggedImage = realm.where(TaggedImage.class).equalTo("imageUri", imageUri).findFirst();
+                Number maxId = realm.where(Tag.class).max("id");
+                int nextId = (maxId == null) ? 1 : maxId.intValue() + 1;
+                tag.setId(nextId);
                 taggedImage.addTag(tag);
                 realm.copyToRealmOrUpdate(tag);
+                //realm.copyToRealmOrUpdate(taggedImage);
             }
         });
     }
 
-    public void save(final List<Tag> tag) {
-        mRealm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.copyToRealmOrUpdate(tag);
-            }
-        });
-    }
+//    public void save(final List<Tag> tag) {
+//        mRealm.executeTransaction(new Realm.Transaction() {
+//            @Override
+//            public void execute(Realm realm) {
+//                realm.copyToRealmOrUpdate(tag);
+//            }
+//        });
+//    }
 
-    public RealmResults<Tag> loadAllTagsFromTaggedImage(String imageUri) {
-        return mRealm.where(Tag.class).equalTo("taggedimages.imageuri", imageUri).findAll();
+    public RealmList<Tag> loadAllTagsFromTaggedImage(String imageUri) {
+        TaggedImage taggedImage = mRealm.where(TaggedImage.class).equalTo("imageUri", imageUri).findFirst();
+        return taggedImage.getTags();
     }
 
     public RealmObject loadById(String id) {

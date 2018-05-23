@@ -1,5 +1,8 @@
 package br.edu.ifspsaocarlos.sdm.fototagz.model.db;
 
+import android.util.Log;
+
+import br.edu.ifspsaocarlos.sdm.fototagz.model.TaggedImage;
 import io.realm.Realm;
 
 public class RealmManager {
@@ -7,6 +10,7 @@ public class RealmManager {
 
     public static Realm open() {
         mRealm = Realm.getDefaultInstance();
+        Log.d("REALM_PATH", "path: " + mRealm.getPath());
         return mRealm;
     }
 
@@ -14,6 +18,16 @@ public class RealmManager {
         if (mRealm != null) {
             mRealm.close();
         }
+    }
+
+    public static TaggedImageDAO createTaggedImageDAO(){
+        checkForOpenRealm();
+        return new TaggedImageDAO(mRealm);
+    }
+
+    public static TagDAO createTagDAO(){
+        checkForOpenRealm();
+        return new TagDAO(mRealm);
     }
 
     private static void checkForOpenRealm() {

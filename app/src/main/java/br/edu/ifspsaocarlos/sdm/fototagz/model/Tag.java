@@ -7,8 +7,12 @@ import io.realm.RealmObject;
 import io.realm.RealmResults;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.LinkingObjects;
+import io.realm.annotations.PrimaryKey;
 
 public class Tag extends RealmObject implements Parcelable{
+
+    @PrimaryKey
+    private int id;
     private String title;
     private String description;
     private int x, y;
@@ -78,12 +82,20 @@ public class Tag extends RealmObject implements Parcelable{
         this.y = y;
     }
 
-    public int getId() {
+    public int getViewId() {
         return viewId;
     }
 
+    public void setViewId(int viewId) {
+        this.viewId = viewId;
+    }
+
+    public int getId() {
+        return id;
+    }
+
     public void setId(int id) {
-        this.viewId = id;
+        this.id = id;
     }
 
     @Override

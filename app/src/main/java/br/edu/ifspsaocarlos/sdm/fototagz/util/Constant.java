@@ -10,6 +10,7 @@ public class Constant {
     public static final String COORDX = "coordx";
     public static final String COORDY = "coordy";
     public static final String TAG_ID = "tagid";
+    public static final String IMG_URI = "imguri";
     public static final String CREATED_TAG = "created_tag";
 
 

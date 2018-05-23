@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,8 +39,11 @@ import java.util.Date;
 
 import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.TaggedImage;
+import br.edu.ifspsaocarlos.sdm.fototagz.model.db.RealmManager;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 import io.realm.Realm;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
 
 public class ImageEditActivity extends Activity {
 
@@ -55,17 +59,14 @@ public class ImageEditActivity extends Activity {
     private String mCurrentPhotoPath;
     private String imageUri;
 
-    private Realm realm;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_edit);
+        RealmManager.open();
 
         ivImage = (ImageView) findViewById(R.id.iv_image);
         rl = (RelativeLayout) findViewById(R.id.rl_imagetag);
-
-        realm = Realm.getDefaultInstance();
 
         if(getIntent().hasExtra(Constant.CAME_FROM)){
             int imageFrom = getIntent().getIntExtra(Constant.CAME_FROM, 0);
@@ -128,8 +129,17 @@ public class ImageEditActivity extends Activity {
                         }
                     }
 
-                    //creates the taggedImage object
-                    taggedImage = new TaggedImage(imageUri);
+                    //TODO: verify if URI is already in bd
+                    taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(imageUri);
+
+                    //if taggedImage was not in bd
+                    if(taggedImage == null){
+                        //creates the taggedImage object
+                        taggedImage = new TaggedImage(imageUri);
+
+                        //saves taggedImage to BD
+                        RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
+                    }
 
                     try {
                         //show chosen image using glide library
@@ -214,9 +224,10 @@ public class ImageEditActivity extends Activity {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         //intent to open activity to set information to the point tagged
                         Intent newTagActivity = new Intent(getBaseContext(), NewTagActivity.class);
-                        newTagActivity.putExtra(Constant.COORDX, iv.getX() + TAG_IMAGE_SIZE);
-                        newTagActivity.putExtra(Constant.COORDY, iv.getY()+TAG_IMAGE_SIZE);
+                        newTagActivity.putExtra(Constant.COORDX, (int)iv.getX() + TAG_IMAGE_SIZE);
+                        newTagActivity.putExtra(Constant.COORDY, (int)iv.getY()+TAG_IMAGE_SIZE);
                         newTagActivity.putExtra(Constant.TAG_ID, iv.getId());
+                        newTagActivity.putExtra(Constant.IMG_URI, imageUri);
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
                     }})
 
@@ -250,7 +261,7 @@ public class ImageEditActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        realm.close();
+        RealmManager.close();
     }
 
     //    private void copyFile(File sourceFile, File destFile) throws IOException {
