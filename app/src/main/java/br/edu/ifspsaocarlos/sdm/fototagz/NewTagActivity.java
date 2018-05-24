@@ -29,10 +29,10 @@ public class NewTagActivity extends Activity {
         btCancel = (Button) findViewById(R.id.bt_cancel);
         btSave = (Button) findViewById(R.id.bt_save);
 
-        if(getIntent().hasExtra(Constant.TAG_ID)){
+        if(getIntent().hasExtra(Constant.TAG_VIEWID)){
             x = getIntent().getIntExtra(Constant.COORDX, 0);
             y = getIntent().getIntExtra(Constant.COORDY, 0);
-            id = getIntent().getIntExtra(Constant.TAG_ID, 0);
+            id = getIntent().getIntExtra(Constant.TAG_VIEWID, 0);
             imageUri = getIntent().getStringExtra(Constant.IMG_URI);
         }
 
@@ -41,7 +41,7 @@ public class NewTagActivity extends Activity {
             @Override
             public void onClick(View v){
                 Intent returnIntent = new Intent();
-                returnIntent.putExtra(Constant.TAG_ID, id);
+                returnIntent.putExtra(Constant.TAG_VIEWID, id);
                 setResult(RESULT_CANCELED, returnIntent);
                 finish();
             }

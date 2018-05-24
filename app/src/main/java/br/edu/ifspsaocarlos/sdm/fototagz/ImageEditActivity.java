@@ -129,17 +129,15 @@ public class ImageEditActivity extends Activity {
                         }
                     }
 
-                    //TODO: verify if URI is already in bd
-                    taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(imageUri);
+                    //TODO: verify if URI is already in bd - not necessary, since there will always be a new URI for each image from gallery, even if its an image already tagged
+                    //taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(imageUri);
 
-                    //if taggedImage was not in bd
-                    if(taggedImage == null){
-                        //creates the taggedImage object
-                        taggedImage = new TaggedImage(imageUri);
 
-                        //saves taggedImage to BD
-                        RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
-                    }
+                    //creates the taggedImage object
+                    taggedImage = new TaggedImage(imageUri);
+
+                    //saves taggedImage to BD
+                    RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
 
                     try {
                         //show chosen image using glide library
@@ -177,7 +175,7 @@ public class ImageEditActivity extends Activity {
             case RESULT_CANCELED:
                 if(requestCode == Constant.NEW_TAG) {
                     //result came from NewTagActivity -> user pressed "Cancel"
-                    int id = data.getIntExtra(Constant.TAG_ID, 0);
+                    int id = data.getIntExtra(Constant.TAG_VIEWID, 0);
                     ImageView ivTag = (ImageView) findViewById(id);
                     ((ViewGroup) ivTag.getParent()).removeView(ivTag);
                 } else {
@@ -200,11 +198,12 @@ public class ImageEditActivity extends Activity {
         iv.setMaxWidth(TAG_IMAGE_SIZE * 2);
         iv.setX(x-TAG_IMAGE_SIZE);
         iv.setY(y-TAG_IMAGE_SIZE);
-        iv.setId(View.generateViewId());
+        final int generatedId = View.generateViewId();
+        iv.setId(generatedId);
         iv.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v){
-                //Toast.makeText(v.getContext(), "TESTE"+tagId, Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), "TESTE "+generatedId, Toast.LENGTH_SHORT).show();
             }
         });
         rl.addView(iv);
@@ -226,7 +225,7 @@ public class ImageEditActivity extends Activity {
                         Intent newTagActivity = new Intent(getBaseContext(), NewTagActivity.class);
                         newTagActivity.putExtra(Constant.COORDX, (int)iv.getX() + TAG_IMAGE_SIZE);
                         newTagActivity.putExtra(Constant.COORDY, (int)iv.getY()+TAG_IMAGE_SIZE);
-                        newTagActivity.putExtra(Constant.TAG_ID, iv.getId());
+                        newTagActivity.putExtra(Constant.TAG_VIEWID, iv.getId());
                         newTagActivity.putExtra(Constant.IMG_URI, imageUri);
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
                     }})

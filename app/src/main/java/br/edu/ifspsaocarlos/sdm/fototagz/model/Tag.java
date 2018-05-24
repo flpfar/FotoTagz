@@ -24,7 +24,7 @@ public class Tag extends RealmObject implements Parcelable{
 
     }
 
-    public Tag(int x, int y, int id) {
+    public Tag(int x, int y, int viewId) {
         this.x = x;
         this.y = y;
         this.viewId = id;
@@ -36,6 +36,7 @@ public class Tag extends RealmObject implements Parcelable{
         x = in.readInt();
         y = in.readInt();
         viewId = in.readInt();
+        id = in.readInt();
     }
 
     public static final Creator<Tag> CREATOR = new Creator<Tag>() {
@@ -110,5 +111,6 @@ public class Tag extends RealmObject implements Parcelable{
         parcel.writeInt(x);
         parcel.writeInt(y);
         parcel.writeInt(viewId);
+        parcel.writeInt(id);
     }
 }
