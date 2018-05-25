@@ -34,6 +34,14 @@ public class MainActivity extends Activity {
             }
         });
 
+        cvFototag.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent galleryIntent = new Intent(v.getContext(), GalleryActivity.class);
+                startActivity(galleryIntent);
+            }
+        });
+
         cvGallery.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v) {

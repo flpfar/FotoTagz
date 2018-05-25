@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ImageEditActivity" />
-        <activity android:name=".NewTagActivity"></activity>
+        <activity android:name=".NewTagActivity" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -31,8 +31,12 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
+
+        <activity
+            android:name=".GalleryActivity"
+            android:label="@string/title_activity_gallery"></activity>
     </application>
 
 </manifest>
