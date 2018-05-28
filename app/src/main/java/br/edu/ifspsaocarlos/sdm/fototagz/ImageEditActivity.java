@@ -36,6 +36,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
@@ -98,6 +100,7 @@ public class ImageEditActivity extends Activity {
                                     "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
                                     photoFile);
                             imageUri = photoURI.toString();
+                            Log.d("CAMERAFILEPROVIDERURI", imageUri);
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                             startActivityForResult(takePictureIntent, CAMERA_REQUEST);
                         }
@@ -108,7 +111,26 @@ public class ImageEditActivity extends Activity {
                     //intent to open gallery to get the image
                     Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
                     photoPickerIntent.setType("image/*");
-                    startActivityForResult(photoPickerIntent, GALLERY_REQUEST);
+
+                    // create the File where the photo should go
+                    File photoFile = null;
+                    try {
+                        photoFile = createImageFile();
+                    } catch (IOException ex) {
+                        // error occurred while creating the File
+                        Toast.makeText(this, "Could not load photo", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+                    // Continue only if the File was successfully created
+                    if (photoFile != null) {
+                        //gets the realUri to access the file (content://...)
+                        Uri photoURI = FileProvider.getUriForFile(this,
+                                "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
+                                photoFile);
+                        imageUri = photoURI.toString();
+                        startActivityForResult(photoPickerIntent, GALLERY_REQUEST);
+                    }
+
                     break;
 
                 default:
@@ -126,11 +148,32 @@ public class ImageEditActivity extends Activity {
                 //*********RESPONSE FROM GALLERY OR CAMERA*********
                 if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
 
-                    imageUri = mCurrentPhotoPath;
+
+//                    imageUri = mCurrentPhotoPath;
                     if(requestCode == GALLERY_REQUEST) {
-                        imageUri = data.getData().toString();
+                        if(data.getData() != null) {
+                            final Uri galleryPhotoURI = data.getData();
+
+                            Log.d("IMAGEURIPATH", imageUri);
+                            Log.d("CURRENTPHOTOPATH", mCurrentPhotoPath);
+
+                            File photoFile = new File(mCurrentPhotoPath);
+
+                            try {
+                                InputStream inputStream = null;
+                                inputStream = getContentResolver().openInputStream(galleryPhotoURI);
+                                FileOutputStream fileOutputStream = null;
+                                fileOutputStream = new FileOutputStream(photoFile);
+                                copyStream(inputStream, fileOutputStream);
+                                fileOutputStream.close();
+                                inputStream.close();
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
-                    Log.d("imageURI", imageUri);
 
                     //show chosen image using glide library
                     try {
@@ -141,46 +184,48 @@ public class ImageEditActivity extends Activity {
                         e.printStackTrace();
                     }
 
-                    if(requestCode == GALLERY_REQUEST){
-                        //TODO: create a copy of the image to store in app's memory case its deleted from gallery
-                        if(data != null) {
-                            //gets the uri of image from gallery
-                            final String sourceUri = imageUri;
-
-                            // create the File where the photo should go
-                            File photoFile = null;
-                            try {
-                                photoFile = createImageFile();
-                            } catch (IOException ex) {
-                                // error occurred while creating the File
-                                Toast.makeText(this, "Could not load photo", Toast.LENGTH_SHORT).show();
-                                finish();
-                            }
-                            // Continue only if the File was successfully created
-                            if (photoFile != null) {
-                                //gets the uri of the file created and stores in mCurrentPhotoPath
-                                Uri photoURI = FileProvider.getUriForFile(this,
-                                        "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
-                                        photoFile);
-                                imageUri = photoURI.toString();
-
-                                //copy the gallery file to the created file
-
-                                //cursor gets the real gallery image uri
-//                                Cursor cursor = getContentResolver().query(Uri.parse(sourceUri), null, null, null, null);
-//                                cursor.moveToFirst();
-//                                Log.d("SOURCEURI", sourceUri);
-//                                Log.d("SOURCEFILE", cursor.getString(cursor.getColumnIndex("_data")));
-//                                //File sourceFile = new File(cursor.getString(cursor.getColumnIndex("_data")));
-                                File sourceFile = new File(getRealPathFromURI(Uri.parse(sourceUri), ImageEditActivity.this));
-                                try {
-                                    copyFile(sourceFile, photoFile);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }
-                    }
+//                    if(requestCode == GALLERY_REQUEST){
+//                        //TODO: create a copy of the image to store in app's memory case its deleted from gallery
+//                        if(data != null) {
+//                            //gets the uri of image from gallery
+//                            final String sourceUri = imageUri;
+//
+//                            // create the File where the photo should go
+//                            File photoFile = null;
+//                            try {
+//                                photoFile = createImageFile();
+//                            } catch (IOException ex) {
+//                                // error occurred while creating the File
+//                                Toast.makeText(this, "Could not load photo", Toast.LENGTH_SHORT).show();
+//                                finish();
+//                            }
+//                            // Continue only if the File was successfully created
+//                            if (photoFile != null) {
+//                                //gets the uri of the file created and stores in mCurrentPhotoPath
+//                                Uri photoURI = FileProvider.getUriForFile(this,
+//                                        "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
+//                                        photoFile);
+//                                imageUri = photoURI.toString();
+//
+//                                //copy the gallery file to the created file
+//
+//                                //cursor gets the real gallery image uri
+////                                Cursor cursor = getContentResolver().query(Uri.parse(sourceUri), null, null, null, null);
+////                                cursor.moveToFirst();
+////                                Log.d("SOURCEURI", sourceUri);
+////                                Log.d("SOURCEFILE", cursor.getString(cursor.getColumnIndex("_data")));
+////                                //File sourceFile = new File(cursor.getString(cursor.getColumnIndex("_data")));
+//                                File sourceFile = new File(getRealPathFromURI(Uri.parse(sourceUri), this));
+//                                Log.d("SOURCEFILEURIOK", sourceFile.getAbsolutePath());
+//                                Log.d("DESTFILEURIOK", photoFile.getAbsolutePath());
+//                                try {
+//                                    copyFile(sourceFile, photoFile);
+//                                } catch (IOException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        }
+//                    }
 
                     //TODO: verify if URI is already in bd - not necessary, since there will always be a new URI for each image from gallery, even if its an image already tagged
                     //taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(imageUri);
@@ -230,6 +275,16 @@ public class ImageEditActivity extends Activity {
             default:
                 finish();
                 break;
+        }
+    }
+
+    public static void copyStream(InputStream input, OutputStream output)
+            throws IOException {
+        Log.d("COPYSTREAM", "");
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = input.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
         }
     }
 
@@ -339,16 +394,16 @@ public class ImageEditActivity extends Activity {
         FileChannel source = null;
         FileChannel destination = null;
         source = new FileInputStream(sourceFile).getChannel();
-        destination = new FileOutputStream(destFile).getChannel();
-        if (destination != null && source != null) {
-            destination.transferFrom(source, 0, source.size());
-        }
-        if (source != null) {
-            source.close();
-        }
-        if (destination != null) {
-            destination.close();
-        }
+//        destination = new FileOutputStream(destFile).getChannel();
+//        if (destination != null && source != null) {
+//            destination.transferFrom(source, 0, source.size());
+//        }
+//        if (source != null) {
+//            source.close();
+//        }
+//        if (destination != null) {
+//            destination.close();
+//        }
     }
 
     public String getRealPathFromURI(Uri contentURI, Activity context) {
