@@ -13,6 +13,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,9 +33,11 @@ import com.bumptech.glide.Glide;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -89,9 +93,11 @@ public class ImageEditActivity extends Activity {
                         }
                         // Continue only if the File was successfully created
                         if (photoFile != null) {
+                            //gets the realUri to access the file (content://...)
                             Uri photoURI = FileProvider.getUriForFile(this,
                                     "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
                                     photoFile);
+                            imageUri = photoURI.toString();
                             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                             startActivityForResult(takePictureIntent, CAMERA_REQUEST);
                         }
@@ -121,11 +127,58 @@ public class ImageEditActivity extends Activity {
                 if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
 
                     imageUri = mCurrentPhotoPath;
+                    if(requestCode == GALLERY_REQUEST) {
+                        imageUri = data.getData().toString();
+                    }
+                    Log.d("imageURI", imageUri);
+
+                    //show chosen image using glide library
+                    try {
+                        Glide.with(ImageEditActivity.this)
+                                .load(imageUri)
+                                .into(ivImage);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
                     if(requestCode == GALLERY_REQUEST){
                         //TODO: create a copy of the image to store in app's memory case its deleted from gallery
                         if(data != null) {
-                            imageUri = data.getData().toString();
+                            //gets the uri of image from gallery
+                            final String sourceUri = imageUri;
+
+                            // create the File where the photo should go
+                            File photoFile = null;
+                            try {
+                                photoFile = createImageFile();
+                            } catch (IOException ex) {
+                                // error occurred while creating the File
+                                Toast.makeText(this, "Could not load photo", Toast.LENGTH_SHORT).show();
+                                finish();
+                            }
+                            // Continue only if the File was successfully created
+                            if (photoFile != null) {
+                                //gets the uri of the file created and stores in mCurrentPhotoPath
+                                Uri photoURI = FileProvider.getUriForFile(this,
+                                        "br.edu.ifspsaocarlos.sdm.fototagz.fileprovider",
+                                        photoFile);
+                                imageUri = photoURI.toString();
+
+                                //copy the gallery file to the created file
+
+                                //cursor gets the real gallery image uri
+//                                Cursor cursor = getContentResolver().query(Uri.parse(sourceUri), null, null, null, null);
+//                                cursor.moveToFirst();
+//                                Log.d("SOURCEURI", sourceUri);
+//                                Log.d("SOURCEFILE", cursor.getString(cursor.getColumnIndex("_data")));
+//                                //File sourceFile = new File(cursor.getString(cursor.getColumnIndex("_data")));
+                                File sourceFile = new File(getRealPathFromURI(Uri.parse(sourceUri), ImageEditActivity.this));
+                                try {
+                                    copyFile(sourceFile, photoFile);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
 
@@ -138,15 +191,6 @@ public class ImageEditActivity extends Activity {
 
                     //saves taggedImage to BD
                     RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
-
-                    try {
-                        //show chosen image using glide library
-                        Glide.with(ImageEditActivity.this)
-                                .load(imageUri)
-                                .into(ivImage);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
 
                     //when user clicks somewhere in imageview, creates a new tag where was touched.
                     ivImage.setOnTouchListener(new View.OnTouchListener() {
@@ -254,6 +298,9 @@ public class ImageEditActivity extends Activity {
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
+        //This mCurrentPhotoPath will get the following path
+        // /storage/emulated/0/Android/data/br.edu.ifspsaocarlos.sdm.fototagz/files/Pictures/JPEG_20180528 (...)
+        Log.d("CurrentPhotoPathIN", mCurrentPhotoPath);
         return image;
     }
 
@@ -263,23 +310,64 @@ public class ImageEditActivity extends Activity {
         RealmManager.close();
     }
 
-    //    private void copyFile(File sourceFile, File destFile) throws IOException {
-//        if (!sourceFile.exists()) {
-//            return;
-//        }
+//    private String getRealPathFromURI(Uri contentUri) {
 //
-//        FileChannel source = null;
-//        FileChannel destination = null;
-//        source = new FileInputStream(sourceFile).getChannel();
-//        destination = new FileOutputStream(destFile).getChannel();
-//        if (destination != null && source != null) {
-//            destination.transferFrom(source, 0, source.size());
-//        }
-//        if (source != null) {
-//            source.close();
-//        }
-//        if (destination != null) {
-//            destination.close();
-//        }
+//        String[] proj = { MediaStore.Video.Media.DATA };
+//        Cursor cursor = managedQuery(contentUri, proj, null, null, null);
+//        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+//        cursor.moveToFirst();
+//        return cursor.getString(column_index);
 //    }
+
+    public String getRealPathFromURI(Uri contentUri) {
+        String res = null;
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
+        if(cursor.moveToFirst()){;
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
+    }
+
+        private void copyFile(File sourceFile, File destFile) throws IOException {
+        if (!sourceFile.exists()) {
+            return;
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+        source = new FileInputStream(sourceFile).getChannel();
+        destination = new FileOutputStream(destFile).getChannel();
+        if (destination != null && source != null) {
+            destination.transferFrom(source, 0, source.size());
+        }
+        if (source != null) {
+            source.close();
+        }
+        if (destination != null) {
+            destination.close();
+        }
+    }
+
+    public String getRealPathFromURI(Uri contentURI, Activity context) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        @SuppressWarnings("deprecation")
+        Cursor cursor = context.managedQuery(contentURI, projection, null,
+                null, null);
+        if (cursor == null)
+            return null;
+        int column_index = cursor
+                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        if (cursor.moveToFirst()) {
+            String s = cursor.getString(column_index);
+            // cursor.close();
+            Log.d("SOURCEURIREALPATH", s);
+            return s;
+
+        }
+        // cursor.close();
+        return null;
+    }
 }
