@@ -17,6 +17,7 @@ public class NewTagActivity extends Activity {
     private String imageUri;
     private EditText etTitle, etDescription;
     private Button btCancel, btSave;
+    private Intent returnIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +37,15 @@ public class NewTagActivity extends Activity {
             imageUri = getIntent().getStringExtra(Constant.IMG_URI);
         }
 
+        //already sets the return intent (case user press back button)
+        returnIntent = new Intent();
+        returnIntent.putExtra(Constant.TAG_VIEWID, id);
+        setResult(RESULT_CANCELED, returnIntent);
+
         //when user chooses to cancel
         btCancel.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v){
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra(Constant.TAG_VIEWID, id);
-                setResult(RESULT_CANCELED, returnIntent);
                 finish();
             }
         });
@@ -59,7 +62,7 @@ public class NewTagActivity extends Activity {
                 RealmManager.createTagDAO().addTagByTaggedImageId(newTag, imageUri);
 
                 //return to ImageEditActivity
-                Intent returnIntent = new Intent();
+                returnIntent = new Intent();
                 returnIntent.putExtra(Constant.CREATED_TAG, newTag);
                 setResult(RESULT_OK, returnIntent);
                 finish();
