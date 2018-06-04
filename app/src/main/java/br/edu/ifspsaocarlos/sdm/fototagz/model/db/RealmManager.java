@@ -10,7 +10,6 @@ public class RealmManager {
 
     public static Realm open() {
         mRealm = Realm.getDefaultInstance();
-        Log.d("REALM_PATH", "path: " + mRealm.getPath());
         return mRealm;
     }
 

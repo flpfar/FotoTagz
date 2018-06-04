@@ -24,8 +24,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ImageEditActivity" />
-        <activity android:name=".NewTagActivity" />
+        <activity android:name=".ImageEditActivity" android:screenOrientation="portrait" />
+        <activity android:name=".NewTagActivity" android:screenOrientation="portrait" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"

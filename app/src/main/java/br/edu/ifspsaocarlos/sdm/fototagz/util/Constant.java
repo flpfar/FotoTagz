@@ -4,8 +4,9 @@ public class Constant {
 
     public static final int IMAGE_FROM_CAMERA = 1;
     public static final int IMAGE_FROM_GALLERY = 2;
-    public static final int IMAGE_TAGGED = 3;
+    public static final int IMAGE_FROM_FOTOTAGZ_GALLERY = 3;
     public static final int NEW_TAG = 4;
+    public static final String TAGGED_IMAGE = "tagged_image";
     public static final String CAME_FROM = "came_from";
     public static final String COORDX = "coordx";
     public static final String COORDY = "coordy";
