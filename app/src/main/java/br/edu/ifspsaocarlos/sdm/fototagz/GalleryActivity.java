@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.TaggedImage;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.db.RealmManager;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
@@ -41,10 +42,11 @@ public class GalleryActivity extends Activity implements GalleryAdapter.ItemClic
     @Override
     public void onItemClick(View view, int position) {
          TaggedImage taggedImage = adapter.getItem(position);
+
          if(taggedImage != null){
              Intent imageEditIntent = new Intent(this, ImageEditActivity.class);
              imageEditIntent.putExtra(Constant.CAME_FROM, Constant.IMAGE_FROM_FOTOTAGZ_GALLERY);
-             imageEditIntent.putExtra(Constant.TAGGED_IMAGE, taggedImage);
+             imageEditIntent.putExtra(Constant.TAGGED_IMAGE, taggedImage.getImageUri());
              startActivity(imageEditIntent);
          }
     }

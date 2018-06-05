@@ -42,6 +42,7 @@ import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.TaggedImage;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.db.RealmManager;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
+import io.realm.RealmList;
 
 public class ImageEditActivity extends Activity {
 
@@ -128,18 +129,25 @@ public class ImageEditActivity extends Activity {
                     break;
 
                 case Constant.IMAGE_FROM_FOTOTAGZ_GALLERY:
-                    taggedImage = getIntent().getParcelableExtra(Constant.TAGGED_IMAGE);
+                    String galleryImageUri = getIntent().getStringExtra(Constant.TAGGED_IMAGE);
+
+                    taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(galleryImageUri);
                     existingTag = true;
+
                     try {
                         Glide.with(this)
-                                .load(taggedImage.getImageUri())
+                                .load(galleryImageUri)
                                 .into(ivImage);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
-                    for (Tag t : taggedImage.getTags()) {
-                        createNewImageTag(ivImage, t.getX(), t.getY());
+                    RealmList<Tag> tagsFromImage = taggedImage.getTags();
+
+                    if(tagsFromImage != null){
+                        for (Tag t : tagsFromImage) {
+                            createNewImageTag(ivImage, t.getX(), t.getY());
+                        }
                     }
 
                     break;
@@ -165,6 +173,7 @@ public class ImageEditActivity extends Activity {
 
                             File photoFile = new File(mCurrentPhotoPath);
 
+                            //creates a copy of image in case its deleted from gallery
                             try {
                                 InputStream inputStream = null;
                                 inputStream = getContentResolver().openInputStream(galleryPhotoURI);
@@ -173,10 +182,9 @@ public class ImageEditActivity extends Activity {
                                 copyStream(inputStream, fileOutputStream);
                                 fileOutputStream.close();
                                 inputStream.close();
-                            } catch (FileNotFoundException e) {
+                            } catch (Exception e) {
                                 e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                                finish();
                             }
                         }
                     }
@@ -209,7 +217,6 @@ public class ImageEditActivity extends Activity {
                 } else if(requestCode == Constant.NEW_TAG){
                     //response came from NewTagActivity
                     Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
-                    Toast.makeText(this, newTag.getTitle(), Toast.LENGTH_SHORT).show();
 
                     //TODO: Insert created tag in TaggedImaged tags list
                     taggedImage.addTag(newTag);
@@ -250,7 +257,7 @@ public class ImageEditActivity extends Activity {
     //creates a new "tag" imageview and show it
     private void createNewImageTag(View v, int x, int y){
         ImageView iv = new ImageView(v.getContext());
-        iv.setImageResource(R.drawable.target);
+        iv.setImageResource(R.drawable.ic_adjust_black_24dp);
         iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(TAG_IMAGE_SIZE * 2,TAG_IMAGE_SIZE * 2));
         iv.setMaxHeight(TAG_IMAGE_SIZE * 2);
         iv.setMaxWidth(TAG_IMAGE_SIZE * 2);

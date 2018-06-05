@@ -1,14 +1,11 @@
 package br.edu.ifspsaocarlos.sdm.fototagz.model;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
-public class TaggedImage extends RealmObject implements Parcelable{
+public class TaggedImage extends RealmObject {
 
     @PrimaryKey
     @Required
@@ -24,24 +21,12 @@ public class TaggedImage extends RealmObject implements Parcelable{
         this.imageUri = imageUri;
     }
 
-    protected TaggedImage(Parcel in) {
-        imageUri = in.readString();
-    }
-
-    public static final Creator<TaggedImage> CREATOR = new Creator<TaggedImage>() {
-        @Override
-        public TaggedImage createFromParcel(Parcel in) {
-            return new TaggedImage(in);
-        }
-
-        @Override
-        public TaggedImage[] newArray(int size) {
-            return new TaggedImage[size];
-        }
-    };
-
     public String getImageUri() {
         return imageUri;
+    }
+
+    public RealmList<Tag> getTags() {
+        return tags;
     }
 
     public void setImageUri(String imageUri) {
@@ -50,19 +35,5 @@ public class TaggedImage extends RealmObject implements Parcelable{
 
     public void addTag(Tag newTag){
         tags.add(newTag);
-    }
-
-    public RealmList<Tag> getTags() {
-        return tags;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(imageUri);
     }
 }
