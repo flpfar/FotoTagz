@@ -33,6 +33,16 @@ public class TagDAO {
         });
     }
 
+    public void setTagTitleAndDescription(final Tag tag, final String title, final String description) {
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                tag.setTitle(title);
+                tag.setDescription(description);
+            }
+        });
+    }
+
 //    public void save(final List<Tag> tag) {
 //        mRealm.executeTransaction(new Realm.Transaction() {
 //            @Override
@@ -47,7 +57,7 @@ public class TagDAO {
         return taggedImage.getTags();
     }
 
-    public RealmObject loadById(String id) {
+    public RealmObject loadById(int id) {
         return mRealm.where(Tag.class).equalTo("id", id).findFirst();
     }
 }

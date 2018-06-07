@@ -57,7 +57,6 @@ public class ImageEditActivity extends Activity {
 
     private String mCurrentPhotoPath;
     private String imageUri;
-    private boolean existingTag = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,24 +128,32 @@ public class ImageEditActivity extends Activity {
                     break;
 
                 case Constant.IMAGE_FROM_FOTOTAGZ_GALLERY:
-                    String galleryImageUri = getIntent().getStringExtra(Constant.TAGGED_IMAGE);
+                    imageUri = getIntent().getStringExtra(Constant.TAGGED_IMAGE);
 
-                    taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(galleryImageUri);
-                    existingTag = true;
+                    taggedImage = RealmManager.createTaggedImageDAO().loadTaggedImageById(imageUri);
 
                     try {
                         Glide.with(this)
-                                .load(galleryImageUri)
+                                .load(imageUri)
                                 .into(ivImage);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
+                    //when user clicks somewhere in imageview, creates a new tag where was touched.
+                    ivImage.setOnTouchListener(new View.OnTouchListener() {
+                        @Override
+                        public boolean onTouch(final View v, MotionEvent event) {
+                            createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
+                            return false;
+                        }
+                    });
+
                     RealmList<Tag> tagsFromImage = taggedImage.getTags();
 
                     if(tagsFromImage != null){
                         for (Tag t : tagsFromImage) {
-                            createNewImageTag(ivImage, t.getX(), t.getY());
+                            createNewImageTag(ivImage, t.getX(), t.getY(), t.getId(), true);
                         }
                     }
 
@@ -208,18 +215,22 @@ public class ImageEditActivity extends Activity {
                     ivImage.setOnTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(final View v, MotionEvent event) {
-                            createNewImageTag(v, (int)event.getX(), (int)event.getY());
+                            createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
                             return false;
                         }
                     });
 
                 //************* RESPONSE FROM NEWTAGACTIVITY *******************
                 } else if(requestCode == Constant.NEW_TAG){
-                    //response came from NewTagActivity
-                    Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
 
-                    //TODO: Insert created tag in TaggedImaged tags list
-                    taggedImage.addTag(newTag);
+                    if(data.hasExtra(Constant.CREATED_TAG)) {
+                        //response came from NewTagActivity
+                        Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
+                        createNewImageTag(ivImage, newTag.getX(), newTag.getY(), newTag.getId(), true);
+//
+//                        //TODO: Insert created tag in TaggedImaged tags list
+//                        taggedImage.addTag(newTag);
+                    }
 
                 } else {
                     //closes activity
@@ -231,8 +242,14 @@ public class ImageEditActivity extends Activity {
                 if(requestCode == Constant.NEW_TAG) {
                     //result came from NewTagActivity -> user pressed "Cancel"
                     int id = data.getIntExtra(Constant.TAG_VIEWID, 0);
-                    ImageView ivTag = (ImageView) findViewById(id);
-                    ((ViewGroup) ivTag.getParent()).removeView(ivTag);
+
+                    //as tag is being removed before going to newTagActivity, this is not necessary anymore
+
+                    //if result came from newTagActivity and it is from a newTag request (not from an edition)
+//                    if(id != Constant.EDIT_TAG_CANCELED) {
+//                        ImageView ivTag = (ImageView) findViewById(id);
+//                        ((ViewGroup) ivTag.getParent()).removeView(ivTag);
+//                    }
                 } else {
                     finish();
                 }
@@ -255,7 +272,7 @@ public class ImageEditActivity extends Activity {
     }
 
     //creates a new "tag" imageview and show it
-    private void createNewImageTag(View v, int x, int y){
+    private void createNewImageTag(View v, int x, int y, final int tagId, boolean existingTag){
         ImageView iv = new ImageView(v.getContext());
         iv.setImageResource(R.drawable.ic_adjust_black_24dp);
         iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(TAG_IMAGE_SIZE * 2,TAG_IMAGE_SIZE * 2));
@@ -268,7 +285,13 @@ public class ImageEditActivity extends Activity {
         iv.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v){
-                Toast.makeText(v.getContext(), "TESTE "+generatedId, Toast.LENGTH_SHORT).show();
+                //TODO: BUGFIX - when clicking a tag that has just been created, it hasn't an id yet, so gets null pointer in NewTagActivity
+                //possibility: create this onclick only if existingTag = true; and setting this onclick to new tags only in activityresult (maybe call createNewImageTag only onActivityResult?
+                Intent newTagActivityIntent = new Intent(v.getContext(), NewTagActivity.class);
+                newTagActivityIntent.putExtra(Constant.TAG_ID, tagId);
+                newTagActivityIntent.putExtra(Constant.IMG_URI, imageUri);
+                startActivity(newTagActivityIntent);
+//                Toast.makeText(v.getContext(), "TESTE "+generatedId, Toast.LENGTH_SHORT).show();
             }
         });
         rl.addView(iv);
@@ -293,6 +316,7 @@ public class ImageEditActivity extends Activity {
                         newTagActivity.putExtra(Constant.COORDY, (int)iv.getY()+TAG_IMAGE_SIZE);
                         newTagActivity.putExtra(Constant.TAG_VIEWID, iv.getId());
                         newTagActivity.putExtra(Constant.IMG_URI, imageUri);
+                        ((ViewGroup) iv.getParent()).removeView(iv);
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
                     }})
 
@@ -303,7 +327,8 @@ public class ImageEditActivity extends Activity {
 //                        ImageView namebar = (ImageView) findViewById(tagId);
                         ((ViewGroup) iv.getParent()).removeView(iv);
 
-                    }}).show();
+                    }})
+                .show();
     }
 
 
