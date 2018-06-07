@@ -8,6 +8,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
@@ -19,6 +20,7 @@ import io.realm.RealmResults;
 public class GalleryActivity extends Activity implements GalleryAdapter.ItemClickListener {
 
     private RecyclerView recyclerView;
+    private TextView tvEmpty;
     private GalleryAdapter adapter;
 
     @Override
@@ -27,11 +29,21 @@ public class GalleryActivity extends Activity implements GalleryAdapter.ItemClic
         setContentView(R.layout.activity_gallery);
         RealmManager.open();
         recyclerView = findViewById(R.id.rv_gallery);
+        tvEmpty = findViewById(R.id.tv_empty_view);
         setUpRecyclerView();
     }
 
     private void setUpRecyclerView() {
         RealmResults<TaggedImage> results = RealmManager.createTaggedImageDAO().loadAllTaggedImages();
+
+        if(results.isEmpty()){
+            recyclerView.setVisibility(View.GONE);
+            tvEmpty.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            tvEmpty.setVisibility(View.GONE);
+        }
+
         adapter = new GalleryAdapter(results);
         adapter.setClickListener(this);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));

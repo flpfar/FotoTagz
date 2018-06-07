@@ -10,4 +10,5 @@
     <string name="title">Title</string>
     <string name="description">Description</string>
     <string name="title_activity_gallery">GalleryActivity</string>
+    <string name="no_data_available">No images have been tagged yet!</string>
 </resources>
