@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GalleryActivity"
-    android:padding="8dp">
+    tools:context=".GalleryActivity">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_gallery"
         android:background="@null"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="8dp"
         />
 
 

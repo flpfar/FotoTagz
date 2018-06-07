@@ -241,7 +241,7 @@ public class ImageEditActivity extends Activity {
             case RESULT_CANCELED:
                 if(requestCode == Constant.NEW_TAG) {
                     //result came from NewTagActivity -> user pressed "Cancel"
-                    int id = data.getIntExtra(Constant.TAG_VIEWID, 0);
+                    //int id = data.getIntExtra(Constant.TAG_VIEWID, 0);
 
                     //as tag is being removed before going to newTagActivity, this is not necessary anymore
 
@@ -328,6 +328,12 @@ public class ImageEditActivity extends Activity {
                         ((ViewGroup) iv.getParent()).removeView(iv);
 
                     }})
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        ((ViewGroup) iv.getParent()).removeView(iv);
+                    }
+                })
                 .show();
     }
 
