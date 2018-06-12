@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".NewTagActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/tag_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="?android:attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
     <EditText
         android:id="@+id/et_title"
         android:layout_width="0dp"
@@ -14,12 +23,12 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="32dp"
         android:ems="10"
-        android:inputType="textPersonName"
         android:hint="@string/title"
+        android:inputType="textPersonName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/tag_toolbar" />
 
     <EditText
         android:id="@+id/et_description"

@@ -5,18 +5,21 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     private CardView cvFototag;
     private CardView cvGallery;
     private CardView cvCamera;
-    private ImageView mImageView;
+    private Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +29,9 @@ public class MainActivity extends Activity {
         cvFototag = (CardView) findViewById(R.id.cv_fototag);
         cvGallery = (CardView) findViewById(R.id.cv_gallery);
         cvCamera = (CardView) findViewById(R.id.cv_camera);
+        mToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+
+        setSupportActionBar(mToolbar);
 
         cvFototag.setOnClickListener(new Button.OnClickListener(){
             @Override

@@ -3,20 +3,26 @@ package br.edu.ifspsaocarlos.sdm.fototagz;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import br.edu.ifspsaocarlos.sdm.fototagz.model.Tag;
 import br.edu.ifspsaocarlos.sdm.fototagz.model.db.RealmManager;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 import io.realm.Realm;
 
-public class NewTagActivity extends Activity {
+public class NewTagActivity extends AppCompatActivity {
 
-    private int x, y, viewId;
+    private int x, y, viewId, tagId;
     private String imageUri;
     private EditText etTitle, etDescription;
+    private Toolbar tagToolbar;
     private Button btCancel, btSave;
     private Intent returnIntent;
     private Tag editTag;
@@ -31,6 +37,9 @@ public class NewTagActivity extends Activity {
         etDescription = (EditText) findViewById(R.id.et_description);
         btCancel = (Button) findViewById(R.id.bt_cancel);
         btSave = (Button) findViewById(R.id.bt_save);
+        tagToolbar = (Toolbar) findViewById(R.id.tag_toolbar);
+
+        setSupportActionBar(tagToolbar);
 
         if(getIntent().hasExtra(Constant.TAG_VIEWID)){
             x = getIntent().getIntExtra(Constant.COORDX, 0);
@@ -63,16 +72,10 @@ public class NewTagActivity extends Activity {
                 }
             });
         } else if(getIntent().hasExtra(Constant.TAG_ID)) {
-            viewId = getIntent().getIntExtra(Constant.TAG_ID, 0);
+            tagId = getIntent().getIntExtra(Constant.TAG_ID, 0);
             imageUri = getIntent().getStringExtra(Constant.IMG_URI);
 
-            //already sets the return intent (case user press back button)
-            //as the view is being removed once the user clicks any button in dialog from imageeditactivity, its not necessary anymore
-//            returnIntent = new Intent();
-//            returnIntent.putExtra(Constant.TAG_VIEWID, Constant.EDIT_TAG_CANCELED);
-//            setResult(RESULT_CANCELED, returnIntent);
-
-            editTag = (Tag) RealmManager.createTagDAO().loadById(viewId);
+            editTag = (Tag) RealmManager.createTagDAO().loadById(tagId);
 
             etTitle.setText(editTag.getTitle());
             etDescription.setText(editTag.getDescription());
@@ -96,10 +99,34 @@ public class NewTagActivity extends Activity {
                 finish();
             }
         });
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_tag, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int selectedMenuItem = item.getItemId();
 
+        switch (selectedMenuItem){
+            case R.id.menu_edit:
+                Toast.makeText(NewTagActivity.this, "EDIT", Toast.LENGTH_SHORT).show();
+                return true;
 
+            case R.id.menu_delete:
+                RealmManager.createTagDAO().deleteTag(tagId);
+                returnIntent = new Intent();
+                returnIntent.putExtra(Constant.DELETED_TAG, viewId);
+                setResult(RESULT_OK, returnIntent);
+                finish();
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

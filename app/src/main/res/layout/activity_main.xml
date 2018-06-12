@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/main_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        android:background="?android:attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/cv_fototag"
         android:layout_width="0dp"
@@ -17,7 +26,7 @@
         card_view:cardCornerRadius="4dp"
         card_view:layout_constraintEnd_toEndOf="parent"
         card_view:layout_constraintStart_toStartOf="parent"
-        card_view:layout_constraintTop_toTopOf="parent">
+        card_view:layout_constraintTop_toBottomOf="@+id/main_toolbar">
 
         <ImageView
             android:id="@+id/iv_cv_fototag"
@@ -28,10 +37,10 @@
 
         <TextView
             android:id="@+id/tv_cv_fototag"
-            android:text="@string/tagged"
-            android:padding="8dp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:text="@string/tagged" />
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"

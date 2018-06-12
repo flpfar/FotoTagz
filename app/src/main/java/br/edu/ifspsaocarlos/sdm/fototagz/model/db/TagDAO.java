@@ -43,6 +43,16 @@ public class TagDAO {
         });
     }
 
+    public void deleteTag(final int tagId){
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                RealmResults<Tag> tags = mRealm.where(Tag.class).equalTo("id", tagId).findAll();
+                tags.deleteAllFromRealm();
+            }
+        });
+    }
+
 //    public void save(final List<Tag> tag) {
 //        mRealm.executeTransaction(new Realm.Transaction() {
 //            @Override

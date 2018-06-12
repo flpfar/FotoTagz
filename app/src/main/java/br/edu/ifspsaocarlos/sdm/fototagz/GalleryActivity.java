@@ -3,9 +3,11 @@ package br.edu.ifspsaocarlos.sdm.fototagz;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Activity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -17,19 +19,22 @@ import br.edu.ifspsaocarlos.sdm.fototagz.model.db.RealmManager;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 import io.realm.RealmResults;
 
-public class GalleryActivity extends Activity implements GalleryAdapter.ItemClickListener {
+public class GalleryActivity extends AppCompatActivity implements GalleryAdapter.ItemClickListener {
 
     private RecyclerView recyclerView;
     private TextView tvEmpty;
     private GalleryAdapter adapter;
+    private Toolbar galleryToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
         RealmManager.open();
+        galleryToolbar = findViewById(R.id.gallery_toolbar);
         recyclerView = findViewById(R.id.rv_gallery);
         tvEmpty = findViewById(R.id.tv_empty_view);
+        setSupportActionBar(galleryToolbar);
         setUpRecyclerView();
     }
 

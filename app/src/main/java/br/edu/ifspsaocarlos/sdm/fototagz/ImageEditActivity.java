@@ -18,6 +18,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -44,7 +46,7 @@ import br.edu.ifspsaocarlos.sdm.fototagz.model.db.RealmManager;
 import br.edu.ifspsaocarlos.sdm.fototagz.util.Constant;
 import io.realm.RealmList;
 
-public class ImageEditActivity extends Activity {
+public class ImageEditActivity extends AppCompatActivity {
 
     static final int CAMERA_REQUEST = 1;
     static final int GALLERY_REQUEST = 2;
@@ -54,6 +56,7 @@ public class ImageEditActivity extends Activity {
     private ImageView ivImage;
     private RelativeLayout rl;
     private TaggedImage taggedImage = null;
+    private Toolbar imageToolbar;
 
     private String mCurrentPhotoPath;
     private String imageUri;
@@ -66,6 +69,9 @@ public class ImageEditActivity extends Activity {
 
         ivImage = (ImageView) findViewById(R.id.iv_image);
         rl = (RelativeLayout) findViewById(R.id.rl_imagetag);
+//        imageToolbar = (Toolbar) findViewById(R.id.image_toolbar);
+//
+//        setSupportActionBar(imageToolbar);
 
         if(getIntent().hasExtra(Constant.CAME_FROM)){
             int imageFrom = getIntent().getIntExtra(Constant.CAME_FROM, 0);
@@ -170,86 +176,84 @@ public class ImageEditActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (resultCode){
             case RESULT_OK:
-                //*********RESPONSE FROM GALLERY OR CAMERA*********
-                if (requestCode == CAMERA_REQUEST || requestCode == GALLERY_REQUEST) {
+                switch (requestCode){
+                    case CAMERA_REQUEST:
+                        //show chosen image using glide library
+                        showImageWithGlide();
 
-                  //if the image comes from gallery, make a copy of it in case user deletes image from phone gallery
-                    if(requestCode == GALLERY_REQUEST) {
+                        //creates the taggedImage object
+                        taggedImage = new TaggedImage(imageUri);
+
+                        //saves taggedImage to BD
+                        RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
+
+                        //when user clicks somewhere in imageview, creates a new tag where was touched.
+                        ivImage.setOnTouchListener(new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(final View v, MotionEvent event) {
+                                createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
+                                return false;
+                            }
+                        });
+                        break;
+
+                    case GALLERY_REQUEST:
+                        //if the image comes from gallery, make a copy of it in case user deletes image from phone gallery
                         if(data.getData() != null) {
                             final Uri galleryPhotoURI = data.getData();
 
                             File photoFile = new File(mCurrentPhotoPath);
 
                             //creates a copy of image in case its deleted from gallery
-                            try {
-                                InputStream inputStream = null;
-                                inputStream = getContentResolver().openInputStream(galleryPhotoURI);
-                                FileOutputStream fileOutputStream = null;
-                                fileOutputStream = new FileOutputStream(photoFile);
-                                copyStream(inputStream, fileOutputStream);
-                                fileOutputStream.close();
-                                inputStream.close();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                finish();
+                            createImageCopy(galleryPhotoURI, photoFile);
+                        }
+
+                        //show chosen image using glide library
+                        showImageWithGlide();
+
+                        //creates the taggedImage object
+                        taggedImage = new TaggedImage(imageUri);
+
+                        //saves taggedImage to BD
+                        RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
+
+                        //when user clicks somewhere in imageview, creates a new tag where was touched.
+                        ivImage.setOnTouchListener(new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(final View v, MotionEvent event) {
+                                createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
+                                return false;
+                            }
+                        });
+                        break;
+
+                    case Constant.NEW_TAG:
+                        //response came from NewTagActivity
+                        if(data.hasExtra(Constant.CREATED_TAG)) {
+                            Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
+                            createNewImageTag(ivImage, newTag.getX(), newTag.getY(), newTag.getId(), true);
+                        }
+                        break;
+
+                    case Constant.DELETE_TAG:
+                        //response came from NewTagActivity
+                        if(data.hasExtra(Constant.DELETED_TAG)){
+                            int tagViewId = data.getIntExtra(Constant.DELETED_TAG, -1);
+                            if(tagViewId != -1){
+                                ImageView ivTag = (ImageView) findViewById(tagViewId);
+                                ((ViewGroup) ivTag.getParent()).removeView(ivTag);
                             }
                         }
-                    }
+                        break;
 
-                    //show chosen image using glide library
-                    try {
-                        Glide.with(ImageEditActivity.this)
-                                .load(imageUri)
-                                .into(ivImage);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    //creates the taggedImage object
-                    taggedImage = new TaggedImage(imageUri);
-
-                    //saves taggedImage to BD
-                    RealmManager.createTaggedImageDAO().saveTaggedImage(taggedImage);
-
-                    //when user clicks somewhere in imageview, creates a new tag where was touched.
-                    ivImage.setOnTouchListener(new View.OnTouchListener() {
-                        @Override
-                        public boolean onTouch(final View v, MotionEvent event) {
-                            createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
-                            return false;
-                        }
-                    });
-
-                //************* RESPONSE FROM NEWTAGACTIVITY *******************
-                } else if(requestCode == Constant.NEW_TAG){
-
-                    if(data.hasExtra(Constant.CREATED_TAG)) {
-                        //response came from NewTagActivity
-                        Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
-                        createNewImageTag(ivImage, newTag.getX(), newTag.getY(), newTag.getId(), true);
-//
-//                        //TODO: Insert created tag in TaggedImaged tags list
-//                        taggedImage.addTag(newTag);
-                    }
-
-                } else {
-                    //closes activity
-                    finish();
+                    default:
+                        finish();
                 }
                 break;
 
             case RESULT_CANCELED:
                 if(requestCode == Constant.NEW_TAG) {
                     //result came from NewTagActivity -> user pressed "Cancel"
-                    //int id = data.getIntExtra(Constant.TAG_VIEWID, 0);
-
-                    //as tag is being removed before going to newTagActivity, this is not necessary anymore
-
-                    //if result came from newTagActivity and it is from a newTag request (not from an edition)
-//                    if(id != Constant.EDIT_TAG_CANCELED) {
-//                        ImageView ivTag = (ImageView) findViewById(id);
-//                        ((ViewGroup) ivTag.getParent()).removeView(ivTag);
-//                    }
                 } else {
                     finish();
                 }
@@ -285,13 +289,10 @@ public class ImageEditActivity extends Activity {
         iv.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v){
-                //TODO: BUGFIX - when clicking a tag that has just been created, it hasn't an id yet, so gets null pointer in NewTagActivity
-                //possibility: create this onclick only if existingTag = true; and setting this onclick to new tags only in activityresult (maybe call createNewImageTag only onActivityResult?
                 Intent newTagActivityIntent = new Intent(v.getContext(), NewTagActivity.class);
                 newTagActivityIntent.putExtra(Constant.TAG_ID, tagId);
                 newTagActivityIntent.putExtra(Constant.IMG_URI, imageUri);
                 startActivity(newTagActivityIntent);
-//                Toast.makeText(v.getContext(), "TESTE "+generatedId, Toast.LENGTH_SHORT).show();
             }
         });
         rl.addView(iv);
@@ -354,6 +355,31 @@ public class ImageEditActivity extends Activity {
         //This mCurrentPhotoPath will get the following path
         // /storage/emulated/0/Android/data/br.edu.ifspsaocarlos.sdm.fototagz/files/Pictures/JPEG_20180528 (...)
         return image;
+    }
+
+    private void showImageWithGlide(){
+        try {
+            Glide.with(ImageEditActivity.this)
+                    .load(imageUri)
+                    .into(ivImage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createImageCopy(Uri galleryPhotoURI, File photoFile){
+        try {
+            InputStream inputStream = null;
+            inputStream = getContentResolver().openInputStream(galleryPhotoURI);
+            FileOutputStream fileOutputStream = null;
+            fileOutputStream = new FileOutputStream(photoFile);
+            copyStream(inputStream, fileOutputStream);
+            fileOutputStream.close();
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            finish();
+        }
     }
 
     @Override
