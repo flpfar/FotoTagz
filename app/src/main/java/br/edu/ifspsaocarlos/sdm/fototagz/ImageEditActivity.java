@@ -150,7 +150,7 @@ public class ImageEditActivity extends AppCompatActivity {
                     ivImage.setOnTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(final View v, MotionEvent event) {
-                            createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
+                            createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1);
                             return false;
                         }
                     });
@@ -159,7 +159,7 @@ public class ImageEditActivity extends AppCompatActivity {
 
                     if(tagsFromImage != null){
                         for (Tag t : tagsFromImage) {
-                            createNewImageTag(ivImage, t.getX(), t.getY(), t.getId(), true);
+                            createNewImageTag(ivImage, t.getX(), t.getY(), t.getId());
                         }
                     }
 
@@ -191,7 +191,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         ivImage.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(final View v, MotionEvent event) {
-                                createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
+                                createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1);
                                 return false;
                             }
                         });
@@ -221,7 +221,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         ivImage.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(final View v, MotionEvent event) {
-                                createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1, false);
+                                createNewImageTag(v, (int)event.getX(), (int)event.getY(), -1);
                                 return false;
                             }
                         });
@@ -231,7 +231,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         //response came from NewTagActivity
                         if(data.hasExtra(Constant.CREATED_TAG)) {
                             Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
-                            createNewImageTag(ivImage, newTag.getX(), newTag.getY(), newTag.getId(), true);
+                            createNewImageTag(ivImage, newTag.getX(), newTag.getY(), newTag.getId());
                         }
                         break;
 
@@ -276,7 +276,8 @@ public class ImageEditActivity extends AppCompatActivity {
     }
 
     //creates a new "tag" imageview and show it
-    private void createNewImageTag(View v, int x, int y, final int tagId, boolean existingTag){
+    //if its a new tag (user just clicked somewhere in image) it doesnt have an id, so this method must be called with tagId = -1
+    private void createNewImageTag(View v, int x, int y, final int tagId){
         ImageView iv = new ImageView(v.getContext());
         iv.setImageResource(R.drawable.ic_adjust_black_24dp);
         iv.setLayoutParams(new android.view.ViewGroup.LayoutParams(TAG_IMAGE_SIZE * 2,TAG_IMAGE_SIZE * 2));
@@ -286,20 +287,23 @@ public class ImageEditActivity extends AppCompatActivity {
         iv.setY(y-TAG_IMAGE_SIZE);
         final int generatedId = View.generateViewId();
         iv.setId(generatedId);
-        iv.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                Intent newTagActivityIntent = new Intent(v.getContext(), NewTagActivity.class);
-                newTagActivityIntent.putExtra(Constant.TAG_ID, tagId);
-                newTagActivityIntent.putExtra(Constant.IMG_URI, imageUri);
-                newTagActivityIntent.putExtra(Constant.TAG_VIEWID, generatedId);
-                newTagActivityIntent.putExtra(Constant.EXISTING_TAG, true);
-                startActivity(newTagActivityIntent);
-            }
-        });
         rl.addView(iv);
-        if(!existingTag)
+
+        if(tagId != -1) {
+            iv.setOnClickListener(new Button.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent newTagActivityIntent = new Intent(v.getContext(), NewTagActivity.class);
+                    newTagActivityIntent.putExtra(Constant.TAG_ID, tagId);
+                    newTagActivityIntent.putExtra(Constant.IMG_URI, imageUri);
+                    newTagActivityIntent.putExtra(Constant.TAG_VIEWID, generatedId);
+                    newTagActivityIntent.putExtra(Constant.EXISTING_TAG, true);
+                    startActivity(newTagActivityIntent);
+                }
+            });
+        } else {
             showConfirmation(iv);
+        }
     }
 
     //confirmation if user really wants to create a tag where he touched
@@ -316,19 +320,18 @@ public class ImageEditActivity extends AppCompatActivity {
                         //intent to open activity to set information to the point tagged
                         Intent newTagActivity = new Intent(getBaseContext(), NewTagActivity.class);
                         newTagActivity.putExtra(Constant.COORDX, (int)iv.getX() + TAG_IMAGE_SIZE);
-                        newTagActivity.putExtra(Constant.COORDY, (int)iv.getY()+TAG_IMAGE_SIZE);
+                        newTagActivity.putExtra(Constant.COORDY, (int)iv.getY() + TAG_IMAGE_SIZE);
                         newTagActivity.putExtra(Constant.TAG_VIEWID, iv.getId());
                         newTagActivity.putExtra(Constant.IMG_URI, imageUri);
                         newTagActivity.putExtra(Constant.EXISTING_TAG, false);
-                        ((ViewGroup) iv.getParent()).removeView(iv);
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
+                        ((ViewGroup) iv.getParent()).removeView(iv);
                     }})
 
                 //user chooses 'no'
                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         //removes tag imageview from image
-//                        ImageView namebar = (ImageView) findViewById(tagId);
                         ((ViewGroup) iv.getParent()).removeView(iv);
 
                     }})
