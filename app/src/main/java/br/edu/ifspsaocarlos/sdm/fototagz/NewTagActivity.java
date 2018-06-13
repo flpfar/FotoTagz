@@ -41,6 +41,31 @@ public class NewTagActivity extends AppCompatActivity {
 
         setSupportActionBar(tagToolbar);
 
+        Intent intent = getIntent();
+
+        if(intent.hasExtra(Constant.EXISTING_TAG)){
+            boolean tagAlreadyInDB = intent.getBooleanExtra(Constant.EXISTING_TAG, false);
+            if(tagAlreadyInDB){
+                tagId = intent.getIntExtra(Constant.TAG_ID, -1);
+                imageUri = intent.getStringExtra(Constant.IMG_URI);
+                viewId = intent.getIntExtra(Constant.TAG_VIEWID, -1);
+
+                editTag = (Tag) RealmManager.createTagDAO().loadById(tagId);
+
+                etTitle.setText(editTag.getTitle());
+                etDescription.setText(editTag.getDescription());
+
+                btSave.setOnClickListener(new Button.OnClickListener(){
+                    @Override
+                    public void onClick(View v){
+                        //update tag in BD
+                        RealmManager.createTagDAO().setTagTitleAndDescription(editTag, etTitle.getText().toString(), etDescription.getText().toString());
+                        finish();
+                    }
+                });
+            }
+        }
+
         if(getIntent().hasExtra(Constant.TAG_VIEWID)){
             x = getIntent().getIntExtra(Constant.COORDX, 0);
             y = getIntent().getIntExtra(Constant.COORDY, 0);
@@ -72,22 +97,7 @@ public class NewTagActivity extends AppCompatActivity {
                 }
             });
         } else if(getIntent().hasExtra(Constant.TAG_ID)) {
-            tagId = getIntent().getIntExtra(Constant.TAG_ID, 0);
-            imageUri = getIntent().getStringExtra(Constant.IMG_URI);
 
-            editTag = (Tag) RealmManager.createTagDAO().loadById(tagId);
-
-            etTitle.setText(editTag.getTitle());
-            etDescription.setText(editTag.getDescription());
-
-            btSave.setOnClickListener(new Button.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    //update tag in BD
-                    RealmManager.createTagDAO().setTagTitleAndDescription(editTag, etTitle.getText().toString(), etDescription.getText().toString());
-                    finish();
-                }
-            });
         } else {
             finish();
         }

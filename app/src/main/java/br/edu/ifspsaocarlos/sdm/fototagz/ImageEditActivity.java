@@ -292,6 +292,8 @@ public class ImageEditActivity extends AppCompatActivity {
                 Intent newTagActivityIntent = new Intent(v.getContext(), NewTagActivity.class);
                 newTagActivityIntent.putExtra(Constant.TAG_ID, tagId);
                 newTagActivityIntent.putExtra(Constant.IMG_URI, imageUri);
+                newTagActivityIntent.putExtra(Constant.TAG_VIEWID, generatedId);
+                newTagActivityIntent.putExtra(Constant.EXISTING_TAG, true);
                 startActivity(newTagActivityIntent);
             }
         });
@@ -317,6 +319,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         newTagActivity.putExtra(Constant.COORDY, (int)iv.getY()+TAG_IMAGE_SIZE);
                         newTagActivity.putExtra(Constant.TAG_VIEWID, iv.getId());
                         newTagActivity.putExtra(Constant.IMG_URI, imageUri);
+                        newTagActivity.putExtra(Constant.EXISTING_TAG, false);
                         ((ViewGroup) iv.getParent()).removeView(iv);
                         startActivityForResult(newTagActivity, Constant.NEW_TAG);
                     }})

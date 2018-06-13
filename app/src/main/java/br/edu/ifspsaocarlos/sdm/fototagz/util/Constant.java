@@ -18,6 +18,7 @@ public class Constant {
     public static final String CREATED_TAG = "created_tag";
     public static final String DELETED_TAG = "deleted_tag";
     public static final String TAG_ID = "tag_id";
+    public static final String EXISTING_TAG = "existing_tag";
 
 
 
