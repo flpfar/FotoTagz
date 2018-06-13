@@ -4,7 +4,8 @@
     <string name="camera">Câmera</string>
     <string name="tagged">Biblioteca FotoTagz</string>
     <string name="image_description">Image chosen by the user</string>
-    <string name="tag_confirmation">Tag where you touched?</string>
+    <string name="create_tag_confirmation">Create tag where touched?</string>
+    <string name="delete_tag_confirmation">Delete this tag?</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="title">Title</string>

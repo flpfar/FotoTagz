@@ -1,6 +1,8 @@
 package br.edu.ifspsaocarlos.sdm.fototagz;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -150,11 +153,31 @@ public class NewTagActivity extends AppCompatActivity {
                 return true;
 
             case R.id.menu_delete:
-                RealmManager.createTagDAO().deleteTag(tagId);
-                Intent returnIntent = new Intent();
-                returnIntent.putExtra(Constant.DELETED_TAG, viewId);
-                setResult(RESULT_OK, returnIntent);
-                finish();
+
+                new AlertDialog
+                        .Builder(NewTagActivity.this)
+                        .setTitle(getResources().getString(R.string.delete))
+                        .setMessage(getResources().getString(R.string.delete_tag_confirmation))
+
+                        //user chooses 'yes'
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                //removes tag from db
+                                RealmManager.createTagDAO().deleteTag(tagId);
+
+                                Intent returnIntent = new Intent();
+                                returnIntent.putExtra(Constant.DELETED_TAG, viewId);
+                                setResult(RESULT_OK, returnIntent);
+
+                                finish();
+                            }})
+
+                        //user chooses 'no'
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+
+                            }})
+                        .show();
                 return true;
 
             default:

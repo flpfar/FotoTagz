@@ -50,6 +50,8 @@ public class ImageEditActivity extends AppCompatActivity {
 
     static final int CAMERA_REQUEST = 1;
     static final int GALLERY_REQUEST = 2;
+    static final int VIEW_TAG_DATA = 3;
+    static final int NEW_TAG = 4;
 
     static final int TAG_IMAGE_SIZE = 20;
 
@@ -227,7 +229,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         });
                         break;
 
-                    case Constant.NEW_TAG:
+                    case NEW_TAG:
                         //response came from NewTagActivity
                         if(data.hasExtra(Constant.CREATED_TAG)) {
                             Tag newTag = (Tag) data.getParcelableExtra(Constant.CREATED_TAG);
@@ -235,7 +237,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         }
                         break;
 
-                    case Constant.DELETE_TAG:
+                    case VIEW_TAG_DATA:
                         //response came from NewTagActivity
                         if(data.hasExtra(Constant.DELETED_TAG)){
                             int tagViewId = data.getIntExtra(Constant.DELETED_TAG, -1);
@@ -248,11 +250,12 @@ public class ImageEditActivity extends AppCompatActivity {
 
                     default:
                         finish();
+                        break;
                 }
                 break;
 
             case RESULT_CANCELED:
-                if(requestCode == Constant.NEW_TAG) {
+                if(requestCode == NEW_TAG || requestCode == VIEW_TAG_DATA) {
                     //result came from NewTagActivity -> user pressed "Cancel"
                 } else {
                     finish();
@@ -298,7 +301,7 @@ public class ImageEditActivity extends AppCompatActivity {
                     newTagActivityIntent.putExtra(Constant.IMG_URI, imageUri);
                     newTagActivityIntent.putExtra(Constant.TAG_VIEWID, generatedId);
                     newTagActivityIntent.putExtra(Constant.EXISTING_TAG, true);
-                    startActivity(newTagActivityIntent);
+                    startActivityForResult(newTagActivityIntent, VIEW_TAG_DATA);
                 }
             });
         } else {
@@ -311,7 +314,7 @@ public class ImageEditActivity extends AppCompatActivity {
         new AlertDialog
                 .Builder(ImageEditActivity.this)
                 .setTitle("Title")
-                .setMessage(getResources().getString(R.string.tag_confirmation))
+                .setMessage(getResources().getString(R.string.create_tag_confirmation))
                 .setIcon(android.R.drawable.ic_dialog_alert)
 
                 //user chooses 'yes', must show an activity to put details about the point touched
@@ -324,7 +327,7 @@ public class ImageEditActivity extends AppCompatActivity {
                         newTagActivity.putExtra(Constant.TAG_VIEWID, iv.getId());
                         newTagActivity.putExtra(Constant.IMG_URI, imageUri);
                         newTagActivity.putExtra(Constant.EXISTING_TAG, false);
-                        startActivityForResult(newTagActivity, Constant.NEW_TAG);
+                        startActivityForResult(newTagActivity, NEW_TAG);
                         ((ViewGroup) iv.getParent()).removeView(iv);
                     }})
 
